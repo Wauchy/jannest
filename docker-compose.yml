@@ -1,0 +1,27 @@
+version: '3'
+
+networks:
+  proxy:
+    external: true
+
+services:
+
+  ghost:
+    container_name: jannest
+    image: ghost:latest
+    environment:
+      - url=https://jannest.ee
+    volumes:
+      - /home/wauhost/src/apps/jannest-ee/data:/var/lib/ghost/content
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.jannest-secured.rule=Host(`jannest.ee`,`www.jannest.ee`)"
+      - "traefik.http.routers.jannest-secured.entrypoints=websecure"
+    networks:
+      - proxy
