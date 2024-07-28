@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jannest-web
+  namespace: jannest-web
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`jannest.ee`)
+      kind: Rule
+      services:
+        - name: jannest-web-service
+          port: 80
+  tls:
+    certResolver: myresolver

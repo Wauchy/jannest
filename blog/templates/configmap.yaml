@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jannest-blog-configmap
+  namespace: {{ .Release.Namespace }}
+data:
+  config.production.json: |
+    {
+      "url": "http://blog.jannest.ee",
+      "server": {
+        "port": 2368,
+        "host": "0.0.0.0"
+      },
+      "database": {
+        "client": "mysql",
+        "connection": {
+          "host": "mysql.database.svc.cluster.local",
+          "user": "jannest_blog_user",
+          "password": "{{ .Values.auth.jannest_blog_password }}",
+          "database": "jannest-blog"
+        }
+      }
+    }

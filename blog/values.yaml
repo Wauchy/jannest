@@ -1,0 +1,10 @@
+auth:
+  jannest_blog_password: f52b7ce6-209a-4324-a3af-39543b6860d6
+
+global:
+  storageClass: ""
+
+primary:
+  persistence:
+    enabled: true
+    existingClaim: jannest-blog-pvc

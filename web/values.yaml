@@ -1,0 +1,10 @@
+auth:
+  jannest_web_password: 38bc8504-9ef7-42dd-bbda-5e8ca5ba558c
+
+global:
+  storageClass: ""
+
+primary:
+  persistence:
+    enabled: true
+    existingClaim: jannest-web-pvc

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jannest-blog
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: jannest-blog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jannest-blog
+  template:
+    metadata:
+      labels:
+        app: jannest-blog
+    spec:
+      containers:
+      - name: jannest-blog
+        image: ghost:5.88.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 2368
+        volumeMounts:
+        - mountPath: /var/lib/ghost/content
+          name: jannest-blog-data
+        - mountPath: /etc/mysql/client-certs
+          name: mysql-client-certs
+          readOnly: true
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: url
+          value: https://blog.jannest.ee
+        - name: database__client
+          value: mysql
+        - name: database__connection__host
+          value: mysql.database.svc.cluster.local
+        - name: database__connection__user
+          value: jannest_blog_user
+        - name: database__connection__password
+          valueFrom:
+            secretKeyRef:
+              name: jannest-blog-secrets
+              key: jannest_blog_password
+        - name: database__connection__database
+          value: jannest-blog
+        - name: MYSQL_SSL_CA
+          value: /etc/mysql/client-certs/ca-cert.pem
+        - name: MYSQL_SSL_CERT
+          value: /etc/mysql/client-certs/client-cert.pem
+        - name: MYSQL_SSL_KEY
+          value: /etc/mysql/client-certs/client-key.pem
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: jannest-blog-data
+        persistentVolumeClaim:
+          claimName: jannest-blog-pvc
+      - name: mysql-client-certs
+        secret:
+          secretName: mysql-client-certificates

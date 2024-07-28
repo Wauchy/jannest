@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jannest-web
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: jannest-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jannest-web
+  template:
+    metadata:
+      labels:
+        app: jannest-web
+    spec:
+      containers:
+      - name: jannest-web
+        image: ghost:5.88.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 2368
+        volumeMounts:
+        - mountPath: /var/lib/ghost/content
+          name: jannest-web-data
+        - mountPath: /etc/mysql/client-certs
+          name: mysql-client-certs
+          readOnly: true
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: url
+          value: https://jannest.ee
+        - name: database__client
+          value: mysql
+        - name: database__connection__host
+          value: mysql.database.svc.cluster.local
+        - name: database__connection__user
+          value: jannest_web_user
+        - name: database__connection__password
+          valueFrom:
+            secretKeyRef:
+              name: jannest-web-secrets
+              key: jannest_web_password
+        - name: database__connection__database
+          value: jannest-web
+        - name: MYSQL_SSL_CA
+          value: /etc/mysql/client-certs/ca-cert.pem
+        - name: MYSQL_SSL_CERT
+          value: /etc/mysql/client-certs/client-cert.pem
+        - name: MYSQL_SSL_KEY
+          value: /etc/mysql/client-certs/client-key.pem
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: jannest-web-data
+        persistentVolumeClaim:
+          claimName: jannest-web-pvc
+      - name: mysql-client-certs
+        secret:
+          secretName: mysql-client-certificates
