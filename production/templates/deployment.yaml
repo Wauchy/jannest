@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ghost.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "ghost.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "ghost.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "ghost.name" . }}
+    spec:
+      containers:
+      - name: ghost
+        image: "{{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}"
+        imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+        ports:
+        - containerPort: 2368
+        volumeMounts:
+        - mountPath: /var/lib/ghost/content
+          name: ghost-data
+        - mountPath: /etc/mysql/client-certs
+          name: mysql-client-certs
+          readOnly: true
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: url
+          value: http://{{ .Values.global.url }}
+        - name: database__client
+          value: mysql
+        - name: database__connection__host
+          value: {{ .Values.database.host }}
+        - name: database__connection__user
+          value: {{ .Values.database.user }}
+        - name: database__connection__password
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "ghost.fullname" . }}-secrets
+              key: beekeeper_production_password
+        - name: database__connection__database
+          value: {{ .Values.database.name }}
+        - name: MYSQL_SSL_CA
+          value: /etc/mysql/client-certs/ca-cert.pem
+        - name: MYSQL_SSL_CERT
+          value: /etc/mysql/client-certs/client-cert.pem
+        - name: MYSQL_SSL_KEY
+          value: /etc/mysql/client-certs/client-key.pem
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 2368
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 2368
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        resources:
+          requests:
+            memory: {{ .Values.resources.requests.memory }}
+            cpu: {{ .Values.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.resources.limits.memory }}
+            cpu: {{ .Values.resources.limits.cpu }}
+      volumes:
+      - name: ghost-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.primary.persistence.existingClaim }}
+      - name: mysql-client-certs
+        secret:
+          secretName: mysql-client-certificates

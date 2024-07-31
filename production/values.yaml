@@ -1,0 +1,33 @@
+namespace: jannest-production
+auth:
+  jannest_production_password: "5c89d59c-6512-46f2-8cf5-648eb4e14c69"
+global:
+  storageClass: "local-path"
+  image:
+    repository: ghost
+    tag: 5.88.1
+    pullPolicy: IfNotPresent
+  url: jannest.ee
+primary:
+  persistence:
+    enabled: true
+    existingClaim: jannest-production-pvc
+database:
+  host: mysql.database.svc.cluster.local
+  user: jannest_production_user
+  name: jannest-production
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+tls:
+  enabled: true
+  certResolver: myresolver
+  entryPoints:
+    - websecure
+service:
+  type: ClusterIP
+  port: 80

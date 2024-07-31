@@ -1,0 +1,18 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "ghost.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  entryPoints:
+    {{- range .Values.tls.entryPoints }}
+    - {{ . }}
+    {{- end }}
+  routes:
+    - match: Host(`{{ .Values.global.url }}`)
+      kind: Rule
+      services:
+        - name: {{ include "ghost.fullname" . }}-service
+          port: 80
+  tls:
+    certResolver: {{ .Values.tls.certResolver }}

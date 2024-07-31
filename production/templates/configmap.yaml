@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ghost.fullname" . }}-configmap
+  namespace: {{ .Release.Namespace }}
+data:
+  config.production.json: |
+    {
+      "url": "http://{{ .Values.global.url }}",
+      "server": {
+        "port": 2368,
+        "host": "0.0.0.0"
+      },
+      "database": {
+        "client": "mysql",
+        "connection": {
+          "host": "{{ .Values.database.host }}",
+          "user": "{{ .Values.database.user }}",
+          "password": "{{ .Values.auth.password }}",
+          "database": "{{ .Values.database.name }}"
+        }
+      }
+    }
